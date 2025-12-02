@@ -38,13 +38,13 @@ class ApiService {
       (response) => response,
       async (error: AxiosError) => {
         const originalRequest = error.config as any;
-        
+
         // Don't retry if it's already a refresh-token request or if we've already retried
-        if (error.response?.status === 401 && 
-            !originalRequest?.url?.includes('/auth/refresh-token') &&
-            !originalRequest?._retry) {
+        if (error.response?.status === 401 &&
+          !originalRequest?.url?.includes('/auth/refresh-token') &&
+          !originalRequest?._retry) {
           originalRequest._retry = true;
-          
+
           // Token expired, try to refresh
           try {
             const refreshToken = await storage.getRefreshToken();
@@ -311,7 +311,7 @@ class ApiService {
     if (search) params.search = search;
     if (page) params.page = page;
     if (per_page) params.per_page = per_page;
-    
+
     return this.request('get', '/admin/users', undefined, { params });
   }
 
@@ -336,6 +336,10 @@ class ApiService {
   }
 
   // Trainer endpoints
+  async getTrainerDashboardStats() {
+    return this.request('get', '/trainer/dashboard/stats');
+  }
+
   async getTrainerClients() {
     return this.request('get', '/trainer/clients');
   }

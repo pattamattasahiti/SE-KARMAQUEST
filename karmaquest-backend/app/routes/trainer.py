@@ -14,6 +14,73 @@ from datetime import datetime, timedelta
 bp = Blueprint('trainer', __name__)
 
 
+@bp.route('/dashboard/stats', methods=['GET'])
+@jwt_required()
+@trainer_required()
+def get_dashboard_stats():
+    """Get aggregated dashboard statistics for trainer"""
+    try:
+        trainer_id = get_jwt_identity()
+        trainer = User.query.get(trainer_id)
+        
+        if not trainer:
+            return jsonify({'success': False, 'error': 'Trainer not found'}), 404
+        
+        assigned_user_ids = trainer.assigned_users or []
+        
+        # Initialize stats
+        stats = {
+            'total_clients': len(assigned_user_ids),
+            'active_clients': 0,
+            'total_workouts_this_week': 0,
+            'avg_performance_score': 0.0
+        }
+        
+        if not assigned_user_ids:
+            return jsonify({'success': True, 'data': stats})
+        
+        # Calculate active clients (clients with at least one workout)
+        active_clients_count = db.session.query(WorkoutSession.user_id)\
+            .filter(WorkoutSession.user_id.in_(assigned_user_ids))\
+            .distinct()\
+            .count()
+        stats['active_clients'] = active_clients_count
+        
+        # Calculate start of current week (Monday)
+        from datetime import datetime, timedelta
+        today = datetime.utcnow().date()
+        start_of_week = today - timedelta(days=today.weekday())  # Monday
+        start_of_week_datetime = datetime.combine(start_of_week, datetime.min.time())
+        
+        # Count workouts this week
+        workouts_this_week = WorkoutSession.query\
+            .filter(WorkoutSession.user_id.in_(assigned_user_ids))\
+            .filter(WorkoutSession.session_date >= start_of_week_datetime)\
+            .count()
+        stats['total_workouts_this_week'] = workouts_this_week
+        
+        # Calculate average performance score from recent workouts (last 30 days)
+        thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+        recent_sessions = WorkoutSession.query\
+            .filter(WorkoutSession.user_id.in_(assigned_user_ids))\
+            .filter(WorkoutSession.session_date >= thirty_days_ago)\
+            .filter(WorkoutSession.avg_posture_score.isnot(None))\
+            .all()
+        
+        if recent_sessions:
+            total_score = sum(s.avg_posture_score for s in recent_sessions)
+            stats['avg_performance_score'] = round(total_score / len(recent_sessions), 1)
+        
+        print(f"[Trainer] ✅ Dashboard stats calculated for trainer {trainer_id}: {stats}")
+        return jsonify({'success': True, 'data': stats})
+        
+    except Exception as e:
+        print(f"[Trainer] ❌ Error getting dashboard stats: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 @bp.route('/clients', methods=['GET'])
 @jwt_required()
 @trainer_required()

@@ -28,7 +28,7 @@ export default function ProfileScreen({ navigation }: Props) {
     try {
       // Request permission
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      
+
       if (status !== 'granted') {
         Alert.alert('Permission Denied', 'We need camera roll permissions to select a photo.');
         return;
@@ -57,13 +57,13 @@ export default function ProfileScreen({ navigation }: Props) {
       // Convert image to base64
       const response = await fetch(imageUri);
       const blob = await response.blob();
-      
+
       const reader = new FileReader();
       reader.readAsDataURL(blob);
-      
+
       reader.onloadend = async () => {
         const base64data = reader.result as string;
-        
+
         // Update profile with base64 image
         const updateResponse = await apiService.updateUserProfile({
           profile_picture_url: base64data
@@ -118,41 +118,6 @@ export default function ProfileScreen({ navigation }: Props) {
       color: COLORS.primary,
       onPress: () => navigation.navigate('EditProfile'),
     },
-    {
-      id: 'goals',
-      title: 'Fitness Goals',
-      icon: 'flag-outline',
-      color: COLORS.success,
-      onPress: () => navigation.navigate('FitnessGoals'),
-    },
-    {
-      id: 'measurements',
-      title: 'Body Measurements',
-      icon: 'analytics-outline',
-      color: COLORS.info,
-      onPress: () => navigation.navigate('BodyMeasurements'),
-    },
-    {
-      id: 'notifications',
-      title: 'Notifications',
-      icon: 'notifications-outline',
-      color: COLORS.warning,
-      onPress: () => navigation.navigate('Notifications'),
-    },
-    {
-      id: 'privacy',
-      title: 'Privacy & Security',
-      icon: 'lock-closed-outline',
-      color: COLORS.textSecondary,
-      onPress: () => navigation.navigate('PrivacySecurity'),
-    },
-    {
-      id: 'help',
-      title: 'Help & Support',
-      icon: 'help-circle-outline',
-      color: COLORS.info,
-      onPress: () => navigation.navigate('HelpSupport'),
-    },
   ];
 
   return (
@@ -171,8 +136,8 @@ export default function ProfileScreen({ navigation }: Props) {
                 <ActivityIndicator size="large" color={COLORS.white} />
               </View>
             ) : user?.profile_picture_url ? (
-              <Image 
-                source={{ uri: user.profile_picture_url }} 
+              <Image
+                source={{ uri: user.profile_picture_url }}
                 style={styles.avatarImage}
               />
             ) : (
@@ -180,7 +145,7 @@ export default function ProfileScreen({ navigation }: Props) {
                 <Ionicons name="person" size={48} color={COLORS.white} />
               </View>
             )}
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.editAvatarButton}
               onPress={handlePickImage}
               disabled={uploadingImage}
@@ -192,64 +157,6 @@ export default function ProfileScreen({ navigation }: Props) {
             {user?.first_name} {user?.last_name}
           </Text>
           <Text style={styles.userEmail}>{user?.email}</Text>
-        </Card>
-
-        {/* Stats Card */}
-        <TouchableOpacity 
-          activeOpacity={0.7}
-          onPress={() => navigation.navigate('BodyMeasurements')}
-        >
-          <Card style={styles.statsCard}>
-            <View style={styles.sectionTitleRow}>
-              <Text style={styles.sectionTitle}>Your Stats</Text>
-              <Ionicons name="chevron-forward" size={20} color={COLORS.textSecondary} />
-            </View>
-            <View style={styles.statsGrid}>
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>{profile?.current_weight || 'N/A'}</Text>
-                <Text style={styles.statLabel}>Weight (kg)</Text>
-              </View>
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>{profile?.height || 'N/A'}</Text>
-                <Text style={styles.statLabel}>Height (cm)</Text>
-              </View>
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>{profile?.target_weight || 'N/A'}</Text>
-                <Text style={styles.statLabel}>Target (kg)</Text>
-              </View>
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>
-                  {profile?.fitness_level ? profile.fitness_level.charAt(0).toUpperCase() + profile.fitness_level.slice(1) : 'N/A'}
-                </Text>
-                <Text style={styles.statLabel}>Fitness Level</Text>
-              </View>
-            </View>
-            {(!profile?.current_weight || !profile?.height) && (
-              <View style={styles.tapToAddBanner}>
-                <Ionicons name="add-circle" size={20} color={COLORS.primary} />
-                <Text style={styles.tapToAddText}>Tap to add your measurements</Text>
-              </View>
-            )}
-          </Card>
-        </TouchableOpacity>
-
-        {/* Goals Card */}
-        <Card style={styles.goalsCard}>
-          <Text style={styles.sectionTitle}>Current Goals</Text>
-          <View style={styles.goalItem}>
-            <Ionicons name="flag" size={20} color={COLORS.primary} />
-            <Text style={styles.goalText}>
-              {profile?.fitness_goal ? profile.fitness_goal.replace('_', ' ').toUpperCase() : 'Not Set'}
-            </Text>
-          </View>
-          {profile?.target_weight && profile?.current_weight && (
-            <View style={styles.goalItem}>
-              <Ionicons name="trending-down" size={20} color={COLORS.success} />
-              <Text style={styles.goalText}>
-                {Math.abs(profile.target_weight - profile.current_weight).toFixed(1)} kg to goal
-              </Text>
-            </View>
-          )}
         </Card>
 
         {/* Menu Items */}

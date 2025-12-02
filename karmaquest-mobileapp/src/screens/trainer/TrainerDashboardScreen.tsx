@@ -40,23 +40,25 @@ export const TrainerDashboardScreen = () => {
 
   const loadDashboardData = async () => {
     try {
-      // Load assigned clients
-      const response = await apiService.getTrainerClients();
-      
-      if (response.success && response.data) {
-        const clientsData = (response.data as any).clients || [];
-        setClients(clientsData);
-        
-        // Calculate stats from clients data
-        const totalClients = clientsData.length;
-        const activeClients = clientsData.filter((c: any) => c.last_workout_date).length;
-        
+      // Load dashboard statistics from backend
+      const statsResponse = await apiService.getTrainerDashboardStats();
+
+      if (statsResponse.success && statsResponse.data) {
+        const dashboardStats = statsResponse.data as any;
         setStats({
-          total_clients: totalClients,
-          active_clients: activeClients,
-          total_workouts_this_week: 0, // Can be calculated if we have workout data
-          avg_performance_score: 0, // Can be calculated from performance data
+          total_clients: dashboardStats.total_clients || 0,
+          active_clients: dashboardStats.active_clients || 0,
+          total_workouts_this_week: dashboardStats.total_workouts_this_week || 0,
+          avg_performance_score: dashboardStats.avg_performance_score || 0,
         });
+      }
+
+      // Load assigned clients for the list
+      const clientsResponse = await apiService.getTrainerClients();
+
+      if (clientsResponse.success && clientsResponse.data) {
+        const clientsData = (clientsResponse.data as any).clients || [];
+        setClients(clientsData);
       }
     } catch (error) {
       console.error('Error loading dashboard data:', error);

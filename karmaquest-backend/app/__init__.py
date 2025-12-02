@@ -46,6 +46,27 @@ def create_app(config_name='development'):
     except ImportError:
         pass  # Routes will be created
     
+    @app.route('/')
+    def root():
+        return {
+            'server': 'KarmaQuest Backend',
+            'version': '1.0.0',
+            'status': 'running',
+            'ai_models': {
+                'pose_estimation': 'MediaPipe Pose (Model 1)',
+                'exercise_classification': 'Custom ML Model (Model 2)',
+                'form_analysis': 'Active'
+            },
+            'endpoints': {
+                'health': '/api/health',
+                'auth': '/api/auth',
+                'workouts': '/api/workouts',
+                'trainer': '/api/trainer',
+                'admin': '/api/admin'
+            },
+            'message': 'KarmaQuest AI-Powered Fitness Platform'
+        }
+    
     @app.route('/api/health')
     def health_check():
         return {'status': 'healthy', 'message': 'KarmaQuest API is running'}
